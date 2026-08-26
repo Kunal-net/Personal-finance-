@@ -1,0 +1,9 @@
+{
+  "Groceries": ["blinkit", "zepto", "instamart", "bigbasket", "grocery", "groceries", "supermarket", "reliance fresh", "dmart", "jiomart", "nature's basket"],
+  "Food & Dining": ["mc donalds", "mcdonald", "swiggy", "zomato", "restaurant", "starbucks", "pizza", "kfc", "cafe", "bakery", "burger king", "dominos", "subway", "dunkin"],
+  "Travel & Transport": ["uber", "ola", "rapido", "irctc", "railway", "metro", "cab", "flight", "airlines", "fuel", "petrol", "indigo", "makemytrip", "redbus"],
+  "Cashback & Rewards": ["cashback", "one97", "refund", "reward", "bonus"],
+  "Income & Transfers": ["received from", "salary", "dividend", "interest", "refunded", "phonePe", "neft", "rtgs", "imps"],
+  "Shopping": ["amazon", "flipkart", "myntra", "meesho", "retail", "apparel", "clothing", "zara", "h&m", "ajio", "nykaa", "snapdeal"],
+  "Utilities & Bills": ["electricity", "gas", "water", "recharge", "mobile", "wifi", "broadband", "insurance", "airtel", "jio", "vodafone", "bsnl", "tata sky"]
+}
