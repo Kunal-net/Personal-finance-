@@ -74,8 +74,8 @@ def _infer_year(date_str: str, date_range) -> str:
     if not date_range:
         return f"{date_str} {datetime.now().year}"
     try:
-        start = datetime.strptime(date_range[0].replace("'", " 20"), "%d %b  20%y")
-        end   = datetime.strptime(date_range[1].replace("'", " 20"), "%d %b  20%y")
+        start = datetime.strptime(date_range[0].replace("'", " 20"), "%d %b 20%y")
+        end   = datetime.strptime(date_range[1].replace("'", " 20"), "%d %b 20%y")
         tx_date = datetime.strptime(date_str, "%d %b")
         for year in [end.year, start.year]:
             candidate = tx_date.replace(year=year)

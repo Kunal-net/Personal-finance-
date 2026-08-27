@@ -40,6 +40,7 @@ def register(body: RegisterRequest):
             """,
             (body.email, hashed, body.name),
         )
+        _new_id = cur.fetchone()  # consume RETURNING id
         conn.commit()
     except Exception as e:
         conn.rollback()

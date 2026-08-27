@@ -15,7 +15,7 @@ router = APIRouter(prefix="/transactions", tags=["Transactions"])
 @router.get("", response_model=List[Transaction])
 def get_transactions(
     category: Optional[str] = Query(None, description="Filter by category name"),
-    type: Optional[str] = Query(None, description="Filter by 'Debit' or 'Credit'"),
+    tx_type: Optional[str] = Query(None, alias="type", description="Filter by 'Debit' or 'Credit'"),
     current_user: dict = Depends(get_current_user),
 ):
     """
@@ -31,11 +31,11 @@ def get_transactions(
         sql += " AND LOWER(category) = LOWER(%s)"
         params.append(category)
 
-    if type:
-        if type not in ("Debit", "Credit"):
+    if tx_type:
+        if tx_type not in ("Debit", "Credit"):
             raise HTTPException(status_code=400, detail="type must be 'Debit' or 'Credit'")
         sql += " AND type = %s"
-        params.append(type)
+        params.append(tx_type)
 
     sql += " ORDER BY id DESC"
     rows = execute_query(sql, params)

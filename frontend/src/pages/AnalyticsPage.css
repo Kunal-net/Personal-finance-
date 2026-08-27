@@ -1,0 +1,113 @@
+.summary-chips {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  min-width: 140px;
+}
+
+.chip span { font-size: 11px; font-weight: 500; }
+.chip strong { font-size: 18px; font-weight: 700; }
+
+.chip-pink  { border-color: rgba(255,107,138,0.2); }
+.chip-pink span { color: var(--negative); }
+.chip-pink strong { color: var(--text-primary); }
+
+.chip-teal  { border-color: rgba(0,212,170,0.2); }
+.chip-teal span { color: var(--positive); }
+.chip-teal strong { color: var(--text-primary); }
+
+.chip-purple { border-color: rgba(124,106,255,0.2); }
+.chip-purple span { color: var(--accent-purple); }
+.chip-purple strong { color: var(--text-primary); }
+
+.chip-blue  { border-color: rgba(79,163,255,0.2); }
+.chip-blue span { color: var(--info); }
+.chip-blue strong { color: var(--text-primary); }
+
+.chart-section {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.chart-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.category-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cat-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cat-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.cat-right {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 16px;
+}
+
+.cat-amount {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cat-count {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cat-bar-track {
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-left: 16px;
+}
+
+.cat-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.8s ease;
+  opacity: 0.8;
+}

@@ -12,7 +12,9 @@ DB_CONFIG = {
     "port": int(os.getenv("DB_PORT", "5432")),
     "dbname": os.getenv("DB_NAME", "personal_finance"),
     "user": os.getenv("DB_USER", "postgres"),
-    "password": os.environ["DB_PASSWORD"],
+    "password": os.environ.get("DB_PASSWORD") or (_ for _ in ()).throw(
+        RuntimeError("DB_PASSWORD environment variable is required but not set.")
+    ),
 }
 
 

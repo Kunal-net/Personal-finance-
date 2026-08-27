@@ -1,0 +1,27 @@
+.spinner-fullscreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+}
+
+.spinner-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.spinner-ring {
+  border-radius: 50%;
+  border: 3px solid rgba(124, 106, 255, 0.15);
+  border-top-color: var(--accent-purple);
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner-text {
+  color: var(--text-muted);
+  font-size: 13px;
+}

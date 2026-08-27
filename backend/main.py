@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.routers import upload, transactions, analytics
 from backend.routers import auth as auth_router
+from backend.routers import ai as ai_router
 from backend.database import execute_query
 from backend.auth import get_current_user
 from fastapi import Depends
@@ -33,7 +34,12 @@ app = FastAPI(
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,6 +50,7 @@ app.include_router(auth_router.router)
 app.include_router(upload.router)
 app.include_router(transactions.router)
 app.include_router(analytics.router)
+app.include_router(ai_router.router)
 
 
 # ── Misc endpoints ────────────────────────────────────────────────────────────
