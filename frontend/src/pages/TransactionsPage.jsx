@@ -12,18 +12,6 @@ const CATEGORIES = [
   'Utilities', 'Health', 'Travel', 'Education', 'Others/Uncategorized',
 ];
 
-const CATEGORY_COLORS = {
-  'Food & Dining':      'orange',
-  'Transportation':     'blue',
-  'Shopping':           'pink',
-  'Entertainment':      'purple',
-  'Utilities':          'teal',
-  'Health':             'teal',
-  'Travel':             'blue',
-  'Education':          'purple',
-  'Others/Uncategorized': null,
-};
-
 export default function TransactionsPage() {
   const [txns, setTxns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,10 +48,14 @@ export default function TransactionsPage() {
 
   return (
     <div className="transactions-page animate-fade-in">
+      <div className="section-badge">
+        <span className="section-eyebrow">SECTION 02</span>
+        <span className="section-title">Ledger & Audit Records</span>
+      </div>
       <div className="page-header">
         <div>
-          <h1>Transactions</h1>
-          <p>{filtered.length} records found</p>
+          <h1>Transactions Ledger</h1>
+          <p>{filtered.length} parsed records found</p>
         </div>
         <button id="refresh-txn-btn" className="btn btn-ghost btn-sm" onClick={load}>
           <RefreshCw size={14} /> Refresh
@@ -149,7 +141,7 @@ export default function TransactionsPage() {
                     <td className="txn-merchant">{tx.merchant || '—'}</td>
                     <td>
                       {tx.category ? (
-                        <span className={`badge badge-${CATEGORY_COLORS[tx.category] || 'teal'}`}>
+                        <span className="badge badge-mono">
                           {tx.category}
                         </span>
                       ) : '—'}

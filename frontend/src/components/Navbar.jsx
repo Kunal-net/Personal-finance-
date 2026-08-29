@@ -2,17 +2,26 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import {
   LayoutDashboard, List, BarChart2, Brain,
-  Upload, LogOut, ChevronRight, Sparkles, Menu, X, User
+  Upload, LogOut, ChevronRight, Menu, X, User, Layers
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const NAV_ITEMS = [
-  { to: '/',             label: 'Dashboard',    icon: LayoutDashboard },
-  { to: '/transactions', label: 'Transactions', icon: List },
-  { to: '/analytics',    label: 'Analytics',    icon: BarChart2 },
-  { to: '/ai',           label: 'AI Insights',  icon: Brain },
-  { to: '/upload',       label: 'Upload',       icon: Upload },
+  { to: '/',             label: 'Dashboard',    icon: LayoutDashboard, section: '01' },
+  { to: '/transactions', label: 'Transactions', icon: List,            section: '02' },
+  { to: '/analytics',    label: 'Analytics',    icon: BarChart2,       section: '03' },
+  { to: '/ai',           label: 'AI Insights',  icon: Brain,          section: '04' },
+  { to: '/upload',       label: 'Upload PDF',   icon: Upload,         section: '05' },
+];
+
+const MONO_SWATCHES = [
+  { bg: '#ffffff', hex: 'FFFFFF' },
+  { bg: '#e4e4e7', hex: 'E4E4E7' },
+  { bg: '#a1a1aa', hex: 'A1A1AA' },
+  { bg: '#71717a', hex: '71717A' },
+  { bg: '#3f3f46', hex: '3F3F46' },
+  { bg: '#18181b', hex: '18181B' },
 ];
 
 export default function Navbar() {
@@ -44,22 +53,23 @@ export default function Navbar() {
 
       {/* Sidebar */}
       <nav className={`sidebar ${mobileOpen ? 'sidebar-open' : ''}`}>
-        {/* Logo */}
+        {/* Logo Header */}
         <div className="sidebar-logo">
           <div className="logo-icon">
-            <Sparkles size={20} />
+            <Layers size={22} />
           </div>
           <div>
-            <span className="logo-text text-gradient">FinanceAI</span>
-            <span className="logo-sub">Smart Dashboard</span>
+            <span className="logo-text">Finance <span className="logo-badge">OS</span></span>
+            <span className="logo-sub">Monochrome Platform</span>
           </div>
         </div>
 
         <div className="sidebar-divider" />
 
-        {/* Navigation */}
+        {/* Navigation Section */}
+        <div className="nav-section-label">Main Navigation</div>
         <nav className="sidebar-nav">
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+          {NAV_ITEMS.map(({ to, label, icon: Icon, section }) => (
             <NavLink
               key={to}
               to={to}
@@ -68,11 +78,22 @@ export default function Navbar() {
               onClick={close}
             >
               <Icon size={18} className="nav-icon" />
-              <span>{label}</span>
+              <span className="nav-label">{label}</span>
+              <span className="nav-section-num">{section}</span>
               <ChevronRight size={14} className="nav-chevron" />
             </NavLink>
           ))}
         </nav>
+
+        {/* Monochrome Palette Indicator */}
+        <div className="sidebar-palette-box">
+          <span className="palette-title">Monochrome Theme</span>
+          <div className="palette-dots">
+            {MONO_SWATCHES.map(s => (
+              <span key={s.hex} className="palette-dot" style={{ backgroundColor: s.bg }} title={`#${s.hex}`} />
+            ))}
+          </div>
+        </div>
 
         {/* User profile at bottom */}
         <div className="sidebar-footer">
@@ -82,7 +103,7 @@ export default function Navbar() {
               <User size={16} />
             </div>
             <div className="user-info">
-              <span className="user-name">{user?.name || 'User'}</span>
+              <span className="user-name">{user?.name || 'Account Holder'}</span>
               <span className="user-email">{user?.email}</span>
             </div>
           </div>

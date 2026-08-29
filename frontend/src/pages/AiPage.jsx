@@ -11,12 +11,12 @@ import './AiPage.css';
 const fmt = (n) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
-// ── Section loader HOC ────────────────────────────────────────────────────────
-function AiSection({ id, title, icon, color, children, loading, error, onRefresh }) {
+// Section loader HOC
+function AiSection({ id, title, icon, children, loading, error, onRefresh }) {
   return (
     <div id={id} className="card ai-section">
       <div className="ai-section-header">
-        <div className={`ai-section-icon accent-bg-${color}`}>{icon}</div>
+        <div className="ai-section-icon">{icon}</div>
         <div className="ai-section-title">
           <h3>{title}</h3>
         </div>
@@ -31,10 +31,9 @@ function AiSection({ id, title, icon, color, children, loading, error, onRefresh
   );
 }
 
-// ── Health Score Ring ─────────────────────────────────────────────────────────
+// Health Score Ring
 function HealthRing({ score, grade }) {
-  const color = score >= 75 ? '#00d4aa' : score >= 50 ? '#ff9f5a' : '#ff6b8a';
-  const data = [{ value: score, fill: color }, { value: 100 - score, fill: 'rgba(255,255,255,0.04)' }];
+  const data = [{ value: score, fill: '#ffffff' }, { value: 100 - score, fill: '#27272a' }];
   return (
     <div className="health-ring-wrapper">
       <div className="health-ring-chart">
@@ -44,8 +43,8 @@ function HealthRing({ score, grade }) {
           </RadialBarChart>
         </ResponsiveContainer>
         <div className="health-ring-label">
-          <span className="health-score-num" style={{ color }}>{score}</span>
-          <span className="health-grade" style={{ color }}>{grade}</span>
+          <span className="health-score-num">{score}</span>
+          <span className="health-grade">Grade {grade}</span>
         </div>
       </div>
     </div>
@@ -79,20 +78,23 @@ export default function AiPage() {
 
   return (
     <div className="ai-page animate-fade-in">
+      <div className="section-badge">
+        <span className="section-eyebrow">SECTION 04</span>
+        <span className="section-title">AI Intelligence & Health Score</span>
+      </div>
       <div className="page-header">
         <div>
-          <h1><Brain size={22} style={{ marginRight: 10, verticalAlign: 'middle' }} />AI Insights</h1>
-          <p>Machine learning–powered analysis of your financial behaviour</p>
+          <h1><Brain size={22} style={{ marginRight: 10, verticalAlign: 'middle', color: '#ffffff' }} />AI Insights & Predictions</h1>
+          <p>Machine learning–powered analysis, anomaly detection, and health score</p>
         </div>
       </div>
 
       <div className="ai-grid">
-        {/* ── Financial Health Score ──────────────────────────────────────── */}
+        {/* Financial Health Score */}
         <AiSection
           id="ai-health"
           title="Financial Health Score"
           icon={<Heart size={16} />}
-          color="teal"
           loading={loadingMap.health}
           error={errorMap.health}
           onRefresh={() => fetch('health', aiApi.healthScore, setHealth)}
@@ -101,14 +103,14 @@ export default function AiPage() {
             <div className="health-content">
               <HealthRing score={health.score} grade={health.grade} />
               <div className="health-breakdown">
-                <ScoreBar label="Savings Rate" value={health.breakdown.savings_rate_score} max={40} color="#00d4aa" />
-                <ScoreBar label="Spending Trend" value={health.breakdown.trend_score} max={30} color="#7c6aff" />
-                <ScoreBar label="Category Diversity" value={health.breakdown.diversity_score} max={30} color="#4fa3ff" />
+                <ScoreBar label="Savings Rate" value={health.breakdown.savings_rate_score} max={40} color="#ffffff" />
+                <ScoreBar label="Spending Trend" value={health.breakdown.trend_score} max={30} color="#a1a1aa" />
+                <ScoreBar label="Category Diversity" value={health.breakdown.diversity_score} max={30} color="#71717a" />
               </div>
               <div className="insights-list">
                 {health.insights.map((ins, i) => (
                   <div key={i} className="insight-item">
-                    <ChevronRight size={13} style={{ color: '#7c6aff', flexShrink: 0, marginTop: 2 }} />
+                    <ChevronRight size={13} style={{ color: '#ffffff', flexShrink: 0, marginTop: 2 }} />
                     {ins}
                   </div>
                 ))}
@@ -117,12 +119,11 @@ export default function AiPage() {
           )}
         </AiSection>
 
-        {/* ── Spending Prediction ─────────────────────────────────────────── */}
+        {/* Spending Prediction */}
         <AiSection
           id="ai-predict"
           title="Next Month Prediction"
           icon={<TrendingUp size={16} />}
-          color="purple"
           loading={loadingMap.predict}
           error={errorMap.predict}
           onRefresh={() => fetch('predict', aiApi.predict, setPredict)}
@@ -130,7 +131,7 @@ export default function AiPage() {
           {predict && (
             <div className="predict-content">
               <div className="predict-meta">
-                <span className="badge badge-purple">{predict.method === 'regression' ? '📈 Linear Regression' : '📊 Rolling Average'}</span>
+                <span className="badge badge-mono">{predict.method === 'regression' ? '📈 Linear Regression' : '📊 Rolling Average'}</span>
                 <span className="text-muted" style={{ fontSize: 12 }}>{predict.predicted_month} · {predict.data_months} months of data</span>
               </div>
               <div className="predict-total">
@@ -149,12 +150,11 @@ export default function AiPage() {
           )}
         </AiSection>
 
-        {/* ── Savings Plan ────────────────────────────────────────────────── */}
+        {/* Savings Plan */}
         <AiSection
           id="ai-savings"
           title="Savings Plan"
           icon={<PiggyBank size={16} />}
-          color="orange"
           loading={loadingMap.savings}
           error={errorMap.savings}
           onRefresh={() => fetch('savings', aiApi.savingsPlan, setSavings)}
@@ -172,7 +172,7 @@ export default function AiPage() {
                 </div>
                 <div className="savings-stat">
                   <span className="text-secondary" style={{ fontSize: 12 }}>Savings Rate</span>
-                  <strong className={savings.current_savings_rate >= savings.recommended_savings_rate ? 'text-positive' : 'text-negative'}>
+                  <strong>
                     {savings.current_savings_rate.toFixed(1)}%
                   </strong>
                 </div>
@@ -196,7 +196,7 @@ export default function AiPage() {
                     <div key={rec.category} className="rec-item">
                       <div className="rec-header">
                         <span className="rec-cat">{rec.category}</span>
-                        <span className="rec-excess text-negative">-{fmt(rec.suggested_cut)}/mo</span>
+                        <span className="rec-excess">-{fmt(rec.suggested_cut)}/mo</span>
                       </div>
                       <p className="rec-tip">{rec.tip}</p>
                       <div className="rec-bar-track">
@@ -204,7 +204,7 @@ export default function AiPage() {
                       </div>
                       <div className="rec-bar-labels">
                         <span className="text-muted" style={{ fontSize: 11 }}>Benchmark {fmt(rec.benchmark_amount)}</span>
-                        <span className="text-negative" style={{ fontSize: 11 }}>Avg {fmt(rec.avg_spent)}</span>
+                        <span className="text-muted" style={{ fontSize: 11 }}>Avg {fmt(rec.avg_spent)}</span>
                       </div>
                     </div>
                   ))}
@@ -212,7 +212,7 @@ export default function AiPage() {
               )}
 
               {savings.recommendations.length === 0 && (
-                <div className="alert alert-success" style={{ marginTop: 12 }}>
+                <div className="alert" style={{ marginTop: 12 }}>
                   🎉 Great job! You're within recommended spending limits across all categories.
                 </div>
               )}
@@ -220,12 +220,11 @@ export default function AiPage() {
           )}
         </AiSection>
 
-        {/* ── Anomaly Detection ───────────────────────────────────────────── */}
+        {/* Anomaly Detection */}
         <AiSection
           id="ai-anomalies"
           title="Anomaly Detection"
           icon={<AlertTriangle size={16} />}
-          color="pink"
           loading={loadingMap.anomalies}
           error={errorMap.anomalies}
           onRefresh={() => fetch('anomalies', aiApi.anomalies, setAnomalies)}
@@ -234,12 +233,12 @@ export default function AiPage() {
             <div className="anomalies-content">
               <div className="anomaly-meta">
                 <span className="text-muted" style={{ fontSize: 12 }}>Scanned {anomalies.total_scanned} transactions</span>
-                <span className={`badge ${anomalies.anomalies_found > 0 ? 'badge-pink' : 'badge-teal'}`}>
+                <span className="badge badge-mono">
                   {anomalies.anomalies_found} anomalies found
                 </span>
               </div>
               {anomalies.anomalies.length === 0 ? (
-                <div className="alert alert-success" style={{ marginTop: 12 }}>
+                <div className="alert" style={{ marginTop: 12 }}>
                   ✅ No unusual transactions detected.
                 </div>
               ) : (
@@ -248,12 +247,12 @@ export default function AiPage() {
                     <div key={a.id} className="anomaly-item">
                       <div className="anomaly-top">
                         <span className="anomaly-merchant">{a.merchant || '—'}</span>
-                        <span className="anomaly-amount text-negative">
+                        <span className="anomaly-amount">
                           {fmt(a.amount)}
                         </span>
                       </div>
                       <div className="anomaly-meta-row">
-                        <span className="badge badge-pink" style={{ fontSize: 11 }}>{a.category}</span>
+                        <span className="badge badge-mono" style={{ fontSize: 11 }}>{a.category}</span>
                         <span className="text-muted" style={{ fontSize: 11 }}>{a.date}</span>
                         <span className="text-muted" style={{ fontSize: 11 }}>Z={a.z_score.toFixed(2)}</span>
                       </div>

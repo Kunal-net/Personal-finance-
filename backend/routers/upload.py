@@ -5,6 +5,7 @@ The authenticated user's email is used to identify the account holder.
 """
 import tempfile
 import os
+import asyncio
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from backend.database import get_connection
 from backend.parser import parse_pdf
@@ -34,7 +35,7 @@ async def upload_statement(
         tmp_path = tmp.name
 
     try:
-        meta, records = parse_pdf(tmp_path)
+        meta, records = await asyncio.to_thread(parse_pdf, tmp_path)
     except Exception as e:
         raise HTTPException(status_code=422, detail=f"Failed to parse PDF: {str(e)}")
     finally:

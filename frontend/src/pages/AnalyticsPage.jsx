@@ -10,7 +10,7 @@ import './AnalyticsPage.css';
 const fmt = (n) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
-const PIE_COLORS = ['#7c6aff', '#00d4aa', '#ff6b8a', '#ff9f5a', '#4fa3ff', '#a78bfa', '#34d399', '#f87171'];
+const PIE_COLORS = ['#ffffff', '#e4e4e7', '#d4d4d8', '#a1a1aa', '#71717a', '#52525b', '#3f3f46', '#27272a'];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -18,7 +18,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     <div className="chart-tooltip">
       <p className="tooltip-label">{label}</p>
       {payload.map(p => (
-        <p key={p.dataKey} style={{ color: p.color, marginTop: 4 }}>
+        <p key={p.dataKey} style={{ color: p.color === '#ffffff' ? '#ffffff' : '#a1a1aa', marginTop: 4, fontWeight: 600 }}>
           {p.name}: {fmt(p.value)}
         </p>
       ))}
@@ -43,7 +43,7 @@ export default function AnalyticsPage() {
         ]);
         setOverview(ov.data);
         setByCategory(cat.data);
-        setByMonth(mon.data.slice().reverse());
+        setByMonth(mon.data);
       } catch (e) {
         setError(e.response?.data?.detail || 'Failed to load analytics.');
       } finally {
@@ -63,27 +63,31 @@ export default function AnalyticsPage() {
 
   return (
     <div className="analytics-page animate-fade-in">
+      <div className="section-badge">
+        <span className="section-eyebrow">SECTION 03</span>
+        <span className="section-title">Deep Analytics & Categories</span>
+      </div>
       <div className="page-header">
-        <h1>Analytics</h1>
-        <p>Deep dive into your spending patterns</p>
+        <h1>Financial Analytics</h1>
+        <p>Deep dive into your spending patterns, category trends, and monthly distribution</p>
       </div>
 
       {/* Summary row */}
       {overview && (
         <div className="summary-chips">
-          <div className="chip chip-pink">
+          <div className="chip">
             <span>Total Spent</span>
             <strong>{fmt(overview.total_spent)}</strong>
           </div>
-          <div className="chip chip-teal">
+          <div className="chip">
             <span>Total Received</span>
             <strong>{fmt(overview.total_received)}</strong>
           </div>
-          <div className="chip chip-purple">
+          <div className="chip">
             <span>Net Balance</span>
             <strong>{fmt(overview.net_balance)}</strong>
           </div>
-          <div className="chip chip-blue">
+          <div className="chip">
             <span>Transactions</span>
             <strong>{overview.transaction_count}</strong>
           </div>
@@ -100,12 +104,12 @@ export default function AnalyticsPage() {
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={byMonth} barGap={4} barCategoryGap="35%">
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-            <XAxis dataKey="month" tick={{ fill: '#8b95b0', fontSize: 11 }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#8b95b0', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} width={55} />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
-            <Bar dataKey="total_debit" name="Spent" fill="#ff6b8a" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="total_credit" name="Received" fill="#00d4aa" radius={[4, 4, 0, 0]} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+            <XAxis dataKey="month" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} width={55} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} />
+            <Bar dataKey="total_debit" name="Spent" fill="#ffffff" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="total_credit" name="Received" fill="#71717a" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -121,11 +125,11 @@ export default function AnalyticsPage() {
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={byMonth.map(m => ({ ...m, net: m.total_credit - m.total_debit }))}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-              <XAxis dataKey="month" tick={{ fill: '#8b95b0', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#8b95b0', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} width={55} />
-              <Tooltip formatter={(v) => [fmt(v), 'Net']} cursor={{ stroke: 'rgba(255,255,255,0.1)' }} contentStyle={{ background: 'rgba(13,18,32,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, fontSize: 13 }} />
-              <Line type="monotone" dataKey="net" stroke="#7c6aff" strokeWidth={2.5} dot={{ fill: '#7c6aff', r: 4 }} activeDot={{ r: 6, fill: '#7c6aff' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} width={55} />
+              <Tooltip formatter={(v) => [fmt(v), 'Net']} cursor={{ stroke: 'rgba(255, 255, 255, 0.2)' }} contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 12, fontSize: 13, color: '#ffffff' }} />
+              <Line type="monotone" dataKey="net" stroke="#ffffff" strokeWidth={2.5} dot={{ fill: '#ffffff', r: 4 }} activeDot={{ r: 6, fill: '#a1a1aa' }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -149,11 +153,11 @@ export default function AnalyticsPage() {
                 paddingAngle={4}
               >
                 {byCategory.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="#121215" strokeWidth={2} />
                 ))}
               </Pie>
-              <Tooltip formatter={(v) => fmt(v)} contentStyle={{ background: 'rgba(13,18,32,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, fontSize: 13 }} />
-              <Legend formatter={(value) => <span style={{ color: '#8b95b0', fontSize: 12 }}>{value}</span>} />
+              <Tooltip formatter={(v) => fmt(v)} contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 12, fontSize: 13, color: '#ffffff' }} />
+              <Legend formatter={(value) => <span style={{ color: '#a1a1aa', fontSize: 12, fontWeight: 500 }}>{value}</span>} />
             </PieChart>
           </ResponsiveContainer>
         </div>

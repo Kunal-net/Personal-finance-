@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Mail, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
+import { Sparkles, Mail, Lock, User, Eye, EyeOff, ArrowRight, AlertCircle, Layers } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './LoginPage.css';
 
@@ -42,17 +42,23 @@ export default function LoginPage() {
       <div className="login-left">
         <div className="login-hero">
           <div className="hero-logo">
-            <Sparkles size={32} />
+            <Layers size={32} />
           </div>
           <h1 className="hero-title">
-            Your finances,<br />
-            <span className="text-gradient">intelligently managed</span>
+            Finance <span style={{ color: '#ffffff' }}>OS</span><br />
+            <span style={{ fontSize: 26, fontWeight: 700, color: '#a1a1aa' }}>Monochrome Operating System</span>
           </h1>
+
+          <div className="quote-box" style={{ background: '#1c1c21', borderColor: '#27272a', marginTop: 16, marginBottom: 24 }}>
+            <div className="quote-label">PLATFORM VISION</div>
+            <div className="quote-text" style={{ color: '#ffffff' }}>“Precision financial analytics in high contrast simplicity.”</div>
+          </div>
+
           <p className="hero-desc">
-            Upload your bank statement and let AI surface insights, detect anomalies, and build your personalized savings plan.
+            An all-in-one financial operating system built exclusively for statement processing, analytics, and intelligent wealth tracking.
           </p>
           <div className="hero-features">
-            {['AI-powered spending predictions', 'Smart anomaly detection', 'Financial health scoring', 'Category analytics'].map(f => (
+            {['Universal PDF statement parsing', 'Machine-learning spend predictions', 'Statistical anomaly detection (Z-Score)', 'Financial Health Score (0–100)'].map(f => (
               <div key={f} className="hero-feature">
                 <span className="feature-dot" />
                 {f}

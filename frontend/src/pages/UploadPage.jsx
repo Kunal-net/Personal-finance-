@@ -53,9 +53,13 @@ export default function UploadPage() {
 
   return (
     <div className="upload-page animate-fade-in">
+      <div className="section-badge">
+        <span className="section-eyebrow">SECTION 05</span>
+        <span className="section-title">PDF Statement Processing</span>
+      </div>
       <div className="page-header">
-        <h1>Upload Statement</h1>
-        <p>Import your bank statement PDF to sync transactions</p>
+        <h1>Upload Statement PDF</h1>
+        <p>Import your bank or wallet statement PDF to sync transactions automatically via Gemini</p>
       </div>
 
       <div className="upload-layout">
@@ -111,7 +115,7 @@ export default function UploadPage() {
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{progress}%</span>
               </div>
               <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${progress}%` }} />
+                <div className="progress-fill" style={{ width: `${progress}%`, background: '#ffffff' }} />
               </div>
             </div>
           )}

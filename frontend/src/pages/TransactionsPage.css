@@ -5,6 +5,10 @@
   padding: 16px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .filter-search-wrap {
@@ -36,6 +40,8 @@
 .txn-date {
   display: block;
   font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .txn-time {
@@ -46,11 +52,18 @@
 }
 
 .txn-merchant {
-  font-weight: 500;
+  font-weight: 600;
   max-width: 220px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #ffffff;
+}
+
+.badge-mono {
+  background: var(--bg-tertiary);
+  color: #ffffff;
+  border: 1px solid var(--glass-border);
 }
 
 .txn-type-badge {
@@ -58,17 +71,29 @@
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  font-weight: 500;
-  padding: 3px 10px;
+  font-weight: 600;
+  padding: 4px 10px;
   border-radius: 999px;
+  border: 1px solid var(--glass-border);
 }
 
 .txn-type-badge.credit {
-  color: var(--positive);
-  background: rgba(0, 212, 170, 0.1);
+  color: #ffffff;
+  background: #27272a;
 }
 
 .txn-type-badge.debit {
-  color: var(--negative);
-  background: rgba(255, 107, 138, 0.1);
+  color: #a1a1aa;
+  background: #18181b;
+}
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
 }

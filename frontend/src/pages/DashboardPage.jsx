@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   TrendingDown, TrendingUp, Wallet, Activity,
-  Upload, ArrowRight, RefreshCw
+  Upload, ArrowRight, RefreshCw, Layers, Brain, List, BarChart2
 } from 'lucide-react';
 import { analyticsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -17,7 +17,18 @@ import './DashboardPage.css';
 const fmt = (n) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 
-const PIE_COLORS = ['#7c6aff', '#00d4aa', '#ff6b8a', '#ff9f5a', '#4fa3ff', '#a78bfa', '#34d399'];
+const PIE_COLORS = ['#ffffff', '#e4e4e7', '#d4d4d8', '#a1a1aa', '#71717a', '#52525b', '#3f3f46'];
+
+const MONO_SWATCHES = [
+  { color: '#ffffff', hex: 'FFFFFF' },
+  { color: '#e4e4e7', hex: 'E4E4E7' },
+  { color: '#a1a1aa', hex: 'A1A1AA' },
+  { color: '#71717a', hex: '71717A' },
+  { color: '#3f3f46', hex: '3F3F46' },
+  { color: '#18181b', hex: '18181B' },
+];
+
+const MONO_TAGS = ['FINANCE OS', 'REAL-TIME ANALYTICS', 'STATEMENT PARSER', 'AI SCORING', 'MONOCHROME UI'];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -25,7 +36,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     <div className="chart-tooltip">
       <p className="tooltip-label">{label}</p>
       {payload.map(p => (
-        <p key={p.dataKey} style={{ color: p.color }}>
+        <p key={p.dataKey} style={{ color: p.color === '#ffffff' ? '#ffffff' : '#a1a1aa', fontWeight: 700 }}>
           {p.name}: {fmt(p.value)}
         </p>
       ))}
@@ -51,8 +62,8 @@ export default function DashboardPage() {
         analyticsApi.byMonth(),
       ]);
       setOverview(ov.data);
-      setByCategory(cat.data.slice(0, 7)); // top 7
-      setByMonth(mon.data.slice(0, 6).reverse()); // last 6 months
+      setByCategory(cat.data.slice(0, 7));
+      setByMonth(mon.data.slice(0, 6));
     } catch (e) {
       setError(e.response?.data?.detail || 'Failed to load dashboard data.');
     } finally {
@@ -75,16 +86,51 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard animate-fade-in">
-      {/* Header */}
-      <div className="page-header dashboard-header">
-        <div>
-          <h1>{greeting()}, {user?.name?.split(' ')[0] || 'there'} 👋</h1>
-          <p>Here's a snapshot of your financial health</p>
+      {/* Hero Section Header */}
+      <div className="hero-card">
+        <div className="hero-glow-bar" />
+        <div className="hero-header">
+          <div className="logo-box">
+            <Layers size={24} />
+          </div>
+          <div className="hero-title">
+            <h2>Personal <span style={{ color: '#ffffff' }}>Finance OS</span></h2>
+            <p className="text-secondary" style={{ fontSize: 13, margin: 0 }}>
+              {greeting()}, {user?.name?.split(' ')[0] || 'Account Holder'} 👋
+            </p>
+          </div>
+          <button id="refresh-btn" className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }} onClick={load}>
+            <RefreshCw size={14} />
+            Sync Data
+          </button>
         </div>
-        <button id="refresh-btn" className="btn btn-ghost btn-sm" onClick={load}>
-          <RefreshCw size={14} />
-          Refresh
-        </button>
+
+        <p className="hero-desc">
+          An all-in-one financial operating system built with high-contrast monochrome design, offering real-time statement parsing, transaction analytics, and AI-driven spending optimization.
+        </p>
+
+        {/* Headline Quote Box */}
+        <div className="quote-box">
+          <div className="quote-label">SYSTEM SLOGAN</div>
+          <div className="quote-text">“Precision finance in high contrast simplicity.”</div>
+        </div>
+
+        {/* Swatch Palette Strip */}
+        <div className="palette-strip">
+          {MONO_SWATCHES.map(s => (
+            <div key={s.hex} className="swatch">
+              <div className="swatch-color" style={{ backgroundColor: s.color }} />
+              <span className="swatch-label">{s.hex}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Pill Tags */}
+        <div className="tag-list">
+          {MONO_TAGS.map(t => (
+            <span key={t} className="tag-pill">{t}</span>
+          ))}
+        </div>
       </div>
 
       {error && (
@@ -97,33 +143,52 @@ export default function DashboardPage() {
         <EmptyState />
       ) : (
         <>
+          {/* SECTION 01 — SUMMARY */}
+          <div className="section-badge">
+            <span className="section-eyebrow">SECTION 01</span>
+            <span className="section-title">Summary & Metrics</span>
+          </div>
+
           {/* Stat cards */}
           <div className="grid-4" style={{ marginBottom: 32 }}>
             <StatCard
               icon={<TrendingDown size={18} />}
-              label="Total Spent"
+              label="Total Outflow"
               value={fmt(overview.total_spent)}
-              accentColor="pink"
+              sub="Debits & expenses"
+              accentColor="mono"
+              section="OUTFLOW"
             />
             <StatCard
               icon={<TrendingUp size={18} />}
-              label="Total Received"
+              label="Total Inflow"
               value={fmt(overview.total_received)}
-              accentColor="teal"
+              sub="Credits & income"
+              accentColor="mono"
+              section="INFLOW"
             />
             <StatCard
               icon={<Wallet size={18} />}
-              label="Net Balance"
+              label="Net Position"
               value={fmt(overview.net_balance)}
-              accentColor={overview.net_balance >= 0 ? 'purple' : 'pink'}
+              sub="Current balance"
+              accentColor="mono"
+              section="BALANCE"
             />
             <StatCard
               icon={<Activity size={18} />}
-              label="Transactions"
+              label="Total Records"
               value={overview.transaction_count}
-              sub="total records"
-              accentColor="blue"
+              sub="Parsed transactions"
+              accentColor="mono"
+              section="RECORDS"
             />
+          </div>
+
+          {/* SECTION 02 — ANALYTICS */}
+          <div className="section-badge">
+            <span className="section-eyebrow">SECTION 02</span>
+            <span className="section-title">Visual Analytics</span>
           </div>
 
           {/* Charts row */}
@@ -132,20 +197,20 @@ export default function DashboardPage() {
             <div className="card chart-card">
               <div className="card-header-row">
                 <div>
-                  <h3>Monthly Trend</h3>
-                  <p className="text-secondary" style={{ fontSize: 12, marginTop: 2 }}>Debit vs Credit last 6 months</p>
+                  <h3>Monthly Outflow vs Inflow</h3>
+                  <p className="text-secondary" style={{ fontSize: 12, marginTop: 2 }}>Monthly transaction breakdown</p>
                 </div>
                 <Link to="/analytics" className="btn btn-ghost btn-sm">
-                  View all <ArrowRight size={13} />
+                  Full Analytics <ArrowRight size={13} />
                 </Link>
               </div>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={byMonth} barGap={4} barCategoryGap="30%">
-                  <XAxis dataKey="month" tick={{ fill: '#8b95b0', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: '#8b95b0', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                  <Bar dataKey="total_debit" name="Spent" fill="#ff6b8a" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="total_credit" name="Received" fill="#00d4aa" radius={[4, 4, 0, 0]} />
+                  <XAxis dataKey="month" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }} />
+                  <Bar dataKey="total_debit" name="Outflow" fill="#ffffff" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="total_credit" name="Inflow" fill="#71717a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -154,11 +219,11 @@ export default function DashboardPage() {
             <div className="card chart-card">
               <div className="card-header-row">
                 <div>
-                  <h3>Spending by Category</h3>
-                  <p className="text-secondary" style={{ fontSize: 12, marginTop: 2 }}>Top categories breakdown</p>
+                  <h3>Spend by Category</h3>
+                  <p className="text-secondary" style={{ fontSize: 12, marginTop: 2 }}>Top categories distribution</p>
                 </div>
                 <Link to="/analytics" className="btn btn-ghost btn-sm">
-                  View all <ArrowRight size={13} />
+                  Explore Categories <ArrowRight size={13} />
                 </Link>
               </div>
               <ResponsiveContainer width="100%" height={220}>
@@ -174,23 +239,28 @@ export default function DashboardPage() {
                     paddingAngle={3}
                   >
                     {byCategory.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="#121215" strokeWidth={2} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v) => fmt(v)} />
+                  <Tooltip formatter={(v) => fmt(v)} contentStyle={{ background: '#18181b', border: '1px solid #27272a', borderRadius: 12, fontSize: 13, color: '#ffffff' }} />
                   <Legend
-                    formatter={(value) => <span style={{ color: '#8b95b0', fontSize: 12 }}>{value}</span>}
+                    formatter={(value) => <span style={{ color: '#a1a1aa', fontSize: 12, fontWeight: 600 }}>{value}</span>}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Quick links */}
+          {/* SECTION 03 — QUICK ACTIONS */}
+          <div className="section-badge">
+            <span className="section-eyebrow">SECTION 03</span>
+            <span className="section-title">Quick Actions & Modules</span>
+          </div>
+
           <div className="grid-3">
-            <QuickLink to="/transactions" label="View Transactions" sub="Browse and filter all your records" icon={<Activity size={20} />} color="purple" />
-            <QuickLink to="/ai" label="AI Insights" sub="Predictions, anomalies & health score" icon={<Activity size={20} />} color="teal" />
-            <QuickLink to="/upload" label="Upload Statement" sub="Add a new bank statement PDF" icon={<Upload size={20} />} color="blue" />
+            <QuickLink to="/transactions" label="View Transactions" sub="Filter, search & audit raw records" icon={<List size={20} />} />
+            <QuickLink to="/ai" label="AI Insights & Scoring" sub="Z-score anomaly & financial health" icon={<Brain size={20} />} />
+            <QuickLink to="/upload" label="Upload Statement PDF" sub="Gemini file parser integration" icon={<Upload size={20} />} />
           </div>
         </>
       )}
@@ -198,12 +268,15 @@ export default function DashboardPage() {
   );
 }
 
-function QuickLink({ to, label, sub, color }) {
+function QuickLink({ to, label, sub, icon }) {
   return (
-    <Link to={to} className={`quick-link card accent-${color}`} id={`quicklink-${label.toLowerCase().replace(/\s+/g, '-')}`}>
-      <div>
-        <h4>{label}</h4>
-        <p className="text-secondary" style={{ fontSize: 12, marginTop: 4 }}>{sub}</p>
+    <Link to={to} className="quick-link card" id={`quicklink-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+      <div className="quick-link-content">
+        <div className="quick-icon-box">{icon}</div>
+        <div>
+          <h4>{label}</h4>
+          <p className="text-secondary" style={{ fontSize: 12, marginTop: 2 }}>{sub}</p>
+        </div>
       </div>
       <ArrowRight size={16} className="quick-arrow" />
     </Link>
@@ -213,12 +286,12 @@ function QuickLink({ to, label, sub, color }) {
 function EmptyState() {
   return (
     <div className="card dashboard-empty">
-      <div className="empty-icon">🚀</div>
-      <h2>Welcome to FinanceAI!</h2>
-      <p>Upload your first bank statement to start tracking your finances.</p>
+      <div className="empty-icon">⚡</div>
+      <h2>Welcome to Personal Finance OS</h2>
+      <p>Upload your first bank or wallet statement PDF to launch your financial analytics.</p>
       <Link to="/upload" id="get-started-btn" className="btn btn-primary btn-lg">
         <Upload size={16} />
-        Upload Statement
+        Upload Statement PDF
       </Link>
     </div>
   );

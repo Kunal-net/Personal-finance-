@@ -7,7 +7,11 @@ JWT authentication utilities.
 """
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Optional
+
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

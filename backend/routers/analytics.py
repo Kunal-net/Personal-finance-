@@ -82,14 +82,15 @@ def spending_by_month(current_user: dict = Depends(get_current_user)):
     rows = execute_query(
         """
         SELECT
-            TO_CHAR(TO_DATE(date, 'DD Mon YYYY'), 'Mon YYYY') AS month,
+            TO_CHAR(DATE_TRUNC('month', TO_DATE(date, 'DD Mon YYYY')), 'Mon YYYY') AS month,
             ROUND(SUM(CASE WHEN type = 'Debit'  THEN ABS(amount) ELSE 0 END)::numeric, 2) AS total_debit,
             ROUND(SUM(CASE WHEN type = 'Credit' THEN amount       ELSE 0 END)::numeric, 2) AS total_credit
         FROM transactions
         WHERE holder_id = %s
-        GROUP BY TO_DATE(date, 'DD Mon YYYY'), TO_CHAR(TO_DATE(date, 'DD Mon YYYY'), 'Mon YYYY')
-        ORDER BY TO_DATE(date, 'DD Mon YYYY') DESC
+        GROUP BY DATE_TRUNC('month', TO_DATE(date, 'DD Mon YYYY'))
+        ORDER BY DATE_TRUNC('month', TO_DATE(date, 'DD Mon YYYY')) ASC
         """,
         (holder_id,),
     )
     return [dict(row) for row in rows]
+

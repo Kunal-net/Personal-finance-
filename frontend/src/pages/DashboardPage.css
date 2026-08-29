@@ -16,13 +16,13 @@
 }
 
 .chart-tooltip {
-  background: rgba(13, 18, 32, 0.95);
-  border: 1px solid var(--glass-border);
+  background: #18181b;
+  border: 1px solid #27272a;
   border-radius: var(--radius-md);
   padding: 12px 16px;
   font-size: 13px;
-  backdrop-filter: blur(12px);
-  box-shadow: var(--shadow-lg);
+  color: #ffffff;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
 }
 
 .tooltip-label {
@@ -36,26 +36,46 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: 20px;
   text-decoration: none;
   transition: all var(--transition-base);
   color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
 }
 
-.quick-link::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-lg);
-  opacity: 0;
-  transition: opacity var(--transition-base);
+.quick-link-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.quick-link.accent-purple:hover { border-color: rgba(124, 106, 255, 0.3); box-shadow: var(--shadow-glow-purple); }
-.quick-link.accent-teal:hover   { border-color: rgba(0, 212, 170, 0.3);   box-shadow: var(--shadow-glow-teal); }
-.quick-link.accent-blue:hover   { border-color: rgba(79, 163, 255, 0.3); }
+.quick-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #ffffff !important;
+  color: #000000 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+  border: 1px solid #ffffff;
+}
 
-.quick-link:hover { transform: translateY(-2px); }
+.quick-icon-box svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
+}
+
+.quick-link:hover {
+  transform: translateY(-2px);
+  border-color: #ffffff;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+}
 
 .quick-arrow {
   flex-shrink: 0;
@@ -65,7 +85,7 @@
 
 .quick-link:hover .quick-arrow {
   transform: translateX(4px);
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .dashboard-empty {
@@ -75,6 +95,9 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
 }
 
 .empty-icon {

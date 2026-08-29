@@ -1,93 +1,75 @@
 """
 backend/parser.py
-PDF statement parser — extracted from ai_model.ipynb for reuse in the FastAPI backend.
-Parses any Paytm-style PDF statement and returns clean transaction records.
+Universal PDF statement parser powered by Google Gemini.
+
+Works with any bank or wallet app statement (HDFC, SBI, ICICI, Paytm,
+PhonePe, GPay, Axis, Kotak, etc.) by letting Gemini extract transactions
+from the raw PDF — no hardcoded column layouts or regex heuristics.
 """
-import re
 import json
-import pdfplumber
-from datetime import datetime
+import os
+import re
+import time
 from pathlib import Path
 
-# Load category mapping from the project root
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+
+load_dotenv(Path(__file__).parent.parent / ".env")
+
+# Load category mapping from project root
 CATEGORIES_PATH = Path(__file__).parent.parent / "categories.json"
 with open(CATEGORIES_PATH, "r") as f:
     CATEGORY_MAPPING = json.load(f)
 
-# ── Regex patterns ────────────────────────────────────────────────────────────
-DATE_PATTERN = re.compile(r"^\d+\s+[A-Za-z]{3}$")
-TIME_PATTERN = re.compile(r"^\d+:\d+\s+(?:AM|PM)$")
-COL_BOUNDARIES = [85, 390, 485]  # [Date/Time, Details, Account, Amount]
+# ── Gemini client ─────────────────────────────────────────────────────────────
 
-SKIP_KEYWORDS = [
-    "passbook payments history", "all payments done", "date &",
-    "transaction details", "notes & tags", "your account", "amount",
-    "page ", "for any queries", "contact us", "paytm statement for",
-    "total money", "payments made", "self transfer",
-    "payments that you might", "paytm payments bank wallet",
-    "accounts payment made", "state bank of india - 30 rs",
-    "(3 payments)", "(2 payments)",
-]
+_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+
+# ── Extraction prompt ─────────────────────────────────────────────────────────
+
+_SYSTEM_PROMPT = """
+You are a financial data extraction assistant.
+Your job is to extract ALL transactions from a bank or wallet statement PDF.
+
+Return ONLY a valid JSON object with this exact structure — no markdown, no extra text:
+
+{
+  "meta": {
+    "account_holder": "<name if found, else null>",
+    "phone": "<10-digit phone if found, else null>",
+    "bank": "<bank or app name>"
+  },
+  "transactions": [
+    {
+      "date": "<DD Mon YYYY, e.g. 12 Aug 2024>",
+      "time": "<HH:MM AM/PM if available, else null>",
+      "merchant": "<payee or payer name, cleaned — no bank codes or ref numbers>",
+      "amount": <absolute numeric value, no currency symbol, no commas>,
+      "type": "<Debit or Credit>",
+      "ref": "<transaction/UPI/cheque reference number if present, else null>"
+    }
+  ]
+}
+
+Rules:
+- Extract EVERY transaction row — do not skip any.
+- "type" must be exactly "Debit" or "Credit" (capital D or C).
+- "amount" must be a positive number — never negative.
+- For "merchant": extract the meaningful name (shop, person, service). Strip account numbers, IFSC, bank names, UPI handles, and ref numbers.
+- For "date": always output in "DD Mon YYYY" format (e.g. "03 Jan 2024"). Infer year from statement period if not explicitly shown per row.
+- If time is not present in the statement, output null.
+- "ref" is used for deduplication — include any UPI Ref, Txn ID, Cheque No, or similar unique identifier if present.
+"""
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _is_noise(cols: list) -> bool:
-    joined = " ".join(cols).lower()
-    return any(kw in joined for kw in SKIP_KEYWORDS)
-
-
-def _extract_merchant(details: str) -> str:
-    match = re.search(
-        r"(?:Paid to|Received from|Cashback Received from)\s+([^:\n#]+)",
-        details,
-        re.IGNORECASE,
-    )
-    if match:
-        org = match.group(1).strip()
-        org = re.split(r"\b(?:Note|UPI|Tag|Ref|using|on|via)\b", org, flags=re.IGNORECASE)[0].strip()
-        org = re.sub(r"\s+(Limited|Private|Pvt)$", "", org, flags=re.IGNORECASE)
-        return org.strip()
-    return "Unknown"
-
-
-def _extract_upi_ref(details: str):
-    match = re.search(r"UPI Ref No:\s*(\d+)", details, re.IGNORECASE)
-    return match.group(1).strip() if match else None
-
-
-def _parse_amount(amount_raw: str):
-    s = amount_raw.strip() if amount_raw else ""
-    is_credit = s.startswith("+")
-    m = re.search(r"[\d,]+\.?\d*", s)
-    if not m:
-        return None, None
-    cleaned = m.group(0).replace(",", "")
-    try:
-        val = float(cleaned)
-        return (val, "Credit") if is_credit else (-val, "Debit")
-    except ValueError:
-        return None, None
-
-
-def _infer_year(date_str: str, date_range) -> str:
-    if not date_range:
-        return f"{date_str} {datetime.now().year}"
-    try:
-        start = datetime.strptime(date_range[0].replace("'", " 20"), "%d %b 20%y")
-        end   = datetime.strptime(date_range[1].replace("'", " 20"), "%d %b 20%y")
-        tx_date = datetime.strptime(date_str, "%d %b")
-        for year in [end.year, start.year]:
-            candidate = tx_date.replace(year=year)
-            if start <= candidate <= end:
-                return f"{date_str} {year}"
-        return f"{date_str} {end.year}"
-    except Exception:
-        return f"{date_str} {datetime.now().year}"
-
-
-def _categorize(merchant: str, details: str) -> str:
-    merchant_l, details_l = merchant.lower(), details.lower()
+def _categorize(merchant: str, raw_text: str = "") -> str:
+    """Map a merchant/details string to a category using keyword matching."""
+    merchant_l = merchant.lower()
+    details_l  = raw_text.lower()
     for category, keywords in CATEGORY_MAPPING.items():
         if any(kw in merchant_l for kw in keywords):
             return category
@@ -97,100 +79,167 @@ def _categorize(merchant: str, details: str) -> str:
     return "Others/Uncategorized"
 
 
+def _clean_amount(raw) -> "Optional[float]":
+    """Ensure amount is a positive float."""
+    try:
+        val = float(str(raw).replace(",", "").strip())
+        return abs(val)
+    except (ValueError, TypeError):
+        return None
+
+
+def _normalize_date(date_str: str) -> str:
+    """Attempt to normalize date string to 'DD Mon YYYY'. Returns as-is if already clean."""
+    if not date_str:
+        return date_str
+    # Already in desired format
+    if re.match(r"^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}$", date_str.strip()):
+        return date_str.strip()
+    return date_str.strip()
+
+
+def _safe_parse_json(raw_text: str) -> dict:
+    """
+    Parse JSON from Gemini output with multiple fallback strategies.
+    Handles truncated output from very large statements gracefully.
+    """
+    # Strategy 1: direct parse
+    try:
+        return json.loads(raw_text)
+    except json.JSONDecodeError:
+        pass
+
+    # Strategy 2: extract the outermost {...} block
+    match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            pass
+
+    # Strategy 3: truncated JSON — close open arrays/objects and try again
+    # This handles cases where a large statement hits token limits mid-JSON
+    text = match.group(0) if match else raw_text
+    # Remove the last incomplete transaction object
+    last_complete = max(text.rfind("},"), text.rfind("}\n"))
+    if last_complete > 0:
+        truncated = text[: last_complete + 1]
+        # Close open structures
+        truncated = truncated.rstrip(", \n")
+        truncated += "]}}"
+        try:
+            return json.loads(truncated)
+        except json.JSONDecodeError:
+            pass
+
+    raise ValueError(
+        f"Could not parse Gemini response as JSON. "
+        f"First 300 chars: {raw_text[:300]}"
+    )
+
+
+
+
 # ── Main parser ───────────────────────────────────────────────────────────────
 
-def parse_pdf(pdf_path: str, col_boundaries: list = COL_BOUNDARIES) -> tuple:
+def parse_pdf(pdf_path: str) -> tuple[dict, list[dict]]:
     """
-    Parse a PDF statement and return:
-      - meta: dict with phone, name, date_range
-      - records: list of clean transaction dicts (model-safe + _upi_ref for DB dedup)
+    Parse ANY bank/wallet statement PDF using Gemini.
+
+    Returns:
+        meta    — dict with phone, name, bank
+        records — list of transaction dicts ready for DB insertion
     """
-    raw_txns = []
-    current_tx = None
-    meta = {"phone": None, "name": None, "date_range": None}
+    # ── Upload PDF to Gemini Files API ────────────────────────────────────────
+    with open(pdf_path, "rb") as f:
+        uploaded = _client.files.upload(
+            file=f,
+            config=types.UploadFileConfig(
+                mime_type="application/pdf",
+                display_name=Path(pdf_path).name,
+            ),
+        )
 
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            words = page.extract_words()
-            lines = []
-            for w in words:
-                placed = False
-                for line in lines:
-                    if abs(line[0]["top"] - w["top"]) < 3:
-                        line.append(w)
-                        placed = True
-                        break
-                if not placed:
-                    lines.append([w])
+    # Wait until the file is ACTIVE (usually instant for small PDFs)
+    file_ref = uploaded
+    for _ in range(10):
+        if file_ref.state and file_ref.state.name == "ACTIVE":
+            break
+        time.sleep(1)
+        file_ref = _client.files.get(name=uploaded.name)
 
-            lines.sort(key=lambda l: l[0]["top"])
+    # ── Call Gemini ───────────────────────────────────────────────────────────
+    response = _client.models.generate_content(
+        model="gemini-3.6-flash",
+        contents=[
+            types.Part.from_uri(file_uri=file_ref.uri, mime_type="application/pdf"),
+            types.Part.from_text(text=_SYSTEM_PROMPT),
+        ],
+        config=types.GenerateContentConfig(
+            temperature=0,          # deterministic
+            max_output_tokens=65536,  # large enough for 6+ month statements
+        ),
+    )
 
-            for line in lines:
-                line.sort(key=lambda w: w["x0"])
-                raw_text = " ".join(w["text"] for w in line)
+    # ── Parse the JSON response ───────────────────────────────────────────────
+    raw_text = ""
+    if hasattr(response, "text") and response.text:
+        raw_text = response.text
+    elif hasattr(response, "candidates") and response.candidates:
+        parts = getattr(response.candidates[0].content, "parts", [])
+        raw_text = "".join(getattr(p, "text", "") or "" for p in parts)
+    
+    raw_text = raw_text.strip()
 
-                # Extract header metadata
-                phone_match = re.search(r"(\d{10})", raw_text)
-                if phone_match and not meta["phone"]:
-                    meta["phone"] = phone_match.group(1)
+    # Strip markdown code fences if present
+    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+    raw_text = re.sub(r"\s*```$", "", raw_text)
 
-                range_match = re.search(r"(\d+\s+[A-Z]+'\d+)\s*-\s*(\d+\s+[A-Z]+'\d+)", raw_text)
-                if range_match and not meta["date_range"]:
-                    meta["date_range"] = (range_match.group(1), range_match.group(2))
+    payload = _safe_parse_json(raw_text)
 
-                if "Paytm User" in raw_text:
-                    meta["name"] = "Paytm User"
+    # ── Build meta ────────────────────────────────────────────────────────────
+    raw_meta = payload.get("meta", {})
+    meta = {
+        "phone": raw_meta.get("phone"),
+        "name":  raw_meta.get("account_holder"),
+        "bank":  raw_meta.get("bank", "Unknown"),
+    }
 
-                # Assign words to columns
-                cols = ["", "", "", ""]
-                for w in line:
-                    x0 = w["x0"]
-                    col_idx = 0
-                    while col_idx < len(col_boundaries) and x0 >= col_boundaries[col_idx]:
-                        col_idx += 1
-                    cols[col_idx] = (cols[col_idx] + " " + w["text"]).strip()
-
-                if _is_noise(cols):
-                    continue
-
-                val0 = cols[0]
-                if DATE_PATTERN.match(val0):
-                    if current_tx:
-                        raw_txns.append(current_tx)
-                    current_tx = {
-                        "Date": val0, "Time": "",
-                        "Details": cols[1], "Account": cols[2], "Amount_raw": cols[3],
-                    }
-                elif current_tx:
-                    if TIME_PATTERN.match(val0):
-                        current_tx["Time"] = val0
-                    if cols[1]:
-                        current_tx["Details"] = (current_tx["Details"] + " " + cols[1]).strip()
-                    if cols[2]:
-                        current_tx["Account"] = (current_tx["Account"] + " " + cols[2]).strip()
-                    if cols[3]:
-                        current_tx["Amount_raw"] = (current_tx["Amount_raw"] + " " + cols[3]).strip()
-
-        if current_tx:
-            raw_txns.append(current_tx)
-
-    # Enrich each raw transaction
+    # ── Build records ─────────────────────────────────────────────────────────
     records = []
-    for tx in raw_txns:
-        merchant        = _extract_merchant(tx["Details"])
-        upi_ref         = _extract_upi_ref(tx["Details"])
-        amount, tx_type = _parse_amount(tx["Amount_raw"])
-        date_full       = _infer_year(tx["Date"], meta["date_range"])
-        category        = _categorize(merchant, tx["Details"])
+    for tx in payload.get("transactions", []):
+        merchant = (tx.get("merchant") or "Unknown").strip() or "Unknown"
+        amount   = _clean_amount(tx.get("amount"))
+        tx_type  = tx.get("type", "").strip()
+        date_str = _normalize_date(tx.get("date") or "")
+        time_str = tx.get("time") or ""
+        ref      = tx.get("ref")
+
+        # Validate type
+        if tx_type not in ("Debit", "Credit"):
+            continue
+        if amount is None or amount == 0:
+            continue
+
+        # Store debits as negative (matches existing DB convention)
+        signed_amount = -amount if tx_type == "Debit" else amount
+
+        category = _categorize(merchant)
 
         records.append({
-            "date"    : date_full,
-            "time"    : tx["Time"],
+            "date":     date_str,
+            "time":     time_str,
             "merchant": merchant,
-            "amount"  : amount,
-            "type"    : tx_type,
+            "amount":   round(signed_amount, 2),
+            "type":     tx_type,
             "category": category,
-            "_upi_ref": upi_ref,  # internal — used for DB dedup, not exposed in API
+            "_upi_ref": ref,   # internal — used for DB dedup
         })
+
+    # Clean up uploaded file from Gemini servers
+    try:
+        _client.files.delete(name=uploaded.name)
+    except Exception:
+        pass  # non-critical
 
     return meta, records

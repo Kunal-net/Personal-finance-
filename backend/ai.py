@@ -163,14 +163,14 @@ def build_savings_plan(transactions: list[dict]) -> dict:
         return {"error": "No monthly data found."}
 
     # Monthly averages
-    total_income = df[df["type"] == "Credit"]["amount"].abs().sum()
-    total_spend  = df[df["type"] == "Debit"]["amount"].abs().sum()
+    total_income = float(df[df["type"] == "Credit"]["amount"].abs().sum())
+    total_spend  = float(df[df["type"] == "Debit"]["amount"].abs().sum())
 
-    avg_income = round(total_income / n_months, 2)
-    avg_spend  = round(total_spend  / n_months, 2)
-    current_savings_rate = round(
+    avg_income = float(round(total_income / n_months, 2))
+    avg_spend  = float(round(total_spend  / n_months, 2))
+    current_savings_rate = float(round(
         (avg_income - avg_spend) / avg_income, 4
-    ) if avg_income > 0 else 0.0
+    )) if avg_income > 0 else 0.0
 
     # Per-category averages
     cat_avg = (
@@ -192,30 +192,31 @@ def build_savings_plan(transactions: list[dict]) -> dict:
         "Others/Uncategorized": "Track where 'misc' money is going — small leaks add up.",
     }
 
-    for category, avg_spent in cat_avg.items():
+    for category, avg_spent_val in cat_avg.items():
+        avg_spent = float(avg_spent_val)
         benchmark_pct = CATEGORY_BENCHMARKS.get(category)
         if benchmark_pct is None:
             continue  # skip income categories
 
-        benchmark_amount = round(avg_income * benchmark_pct, 2)
-        excess = round(avg_spent - benchmark_amount, 2)
+        benchmark_amount = float(round(avg_income * benchmark_pct, 2))
+        excess = float(round(avg_spent - benchmark_amount, 2))
 
         if excess > 0:
             recommendations.append({
                 "category":         category,
-                "avg_spent":        round(avg_spent, 2),
+                "avg_spent":        float(round(avg_spent, 2)),
                 "benchmark_amount": benchmark_amount,
                 "excess":           excess,
-                "suggested_cut":    round(excess * 0.5, 2),  # suggest cutting 50% of excess
+                "suggested_cut":    float(round(excess * 0.5, 2)),  # suggest cutting 50% of excess
                 "tip":              tips.get(category, "Review this category's spending."),
             })
 
     recommendations.sort(key=lambda x: -x["excess"])
 
     recommended_savings_rate = 0.30
-    monthly_savings_gap = round(
+    monthly_savings_gap = float(round(
         max((recommended_savings_rate * avg_income) - (avg_income - avg_spend), 0), 2
-    )
+    ))
 
     return {
         "avg_monthly_income":       avg_income,

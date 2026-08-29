@@ -12,32 +12,21 @@
   padding: 12px 20px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
   min-width: 140px;
 }
 
-.chip span { font-size: 11px; font-weight: 500; }
-.chip strong { font-size: 18px; font-weight: 700; }
-
-.chip-pink  { border-color: rgba(255,107,138,0.2); }
-.chip-pink span { color: var(--negative); }
-.chip-pink strong { color: var(--text-primary); }
-
-.chip-teal  { border-color: rgba(0,212,170,0.2); }
-.chip-teal span { color: var(--positive); }
-.chip-teal strong { color: var(--text-primary); }
-
-.chip-purple { border-color: rgba(124,106,255,0.2); }
-.chip-purple span { color: var(--accent-purple); }
-.chip-purple strong { color: var(--text-primary); }
-
-.chip-blue  { border-color: rgba(79,163,255,0.2); }
-.chip-blue span { color: var(--info); }
-.chip-blue strong { color: var(--text-primary); }
+.chip span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.chip strong { font-size: 18px; font-weight: 700; color: #ffffff; }
 
 .chart-section {
   padding: 24px;
   margin-bottom: 24px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .chart-section-header {
@@ -72,11 +61,12 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .cat-name {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -90,6 +80,7 @@
 .cat-amount {
   font-size: 13px;
   font-weight: 600;
+  color: #ffffff;
 }
 
 .cat-count {
@@ -98,8 +89,8 @@
 }
 
 .cat-bar-track {
-  height: 4px;
-  background: rgba(255,255,255,0.05);
+  height: 6px;
+  background: var(--bg-tertiary);
   border-radius: 999px;
   overflow: hidden;
   margin-left: 16px;
@@ -109,5 +100,4 @@
   height: 100%;
   border-radius: 999px;
   transition: width 0.8s ease;
-  opacity: 0.8;
 }
